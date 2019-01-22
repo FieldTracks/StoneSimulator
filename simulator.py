@@ -52,7 +52,7 @@ class Simulator:
         self.interval = interval
         self.stone_num = stone_num
 
-    def connect(self, host, port, cert, user, passwd):
+    def connect(self, host, port, cert, insecure, user, passwd):
         self.stones = list()
 
         for stone_id in range(self.stone_num):
@@ -61,6 +61,8 @@ class Simulator:
             client.username_pw_set(user, passwd)
             if cert is not None:
                 client.tls_set(cert, tls_version=ssl.PROTOCOL_TLSv1_2)
+                if insecure:
+                    client.tls_insecure_set(True)
             client.connect(host, port)
 
             # Generate mac and uuid
@@ -167,6 +169,7 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--host', help='specify a hostname or ip address', default='localhost')
     parser.add_argument('-p', '--port', help='specify a custom port', type=int, default=1883)
     parser.add_argument('-c', '--cert', help='specify a server certificate')
+    parser.add_argument('-I', '--insecure', help='Don\'t check hostname in certificate', action='store_true')
     parser.add_argument('-u', '--user', help='specify a username', default='stonesimulator')
     parser.add_argument('-P', '--passwd', help='specify password', default='')
     parser.add_argument('-s', '--size', help='size of simulated area: <size> x <size> m^2', type=int, default=200)
@@ -177,7 +180,7 @@ if __name__ == '__main__':
     # Setup simulation
     print("Setting up simulation...")
     sim = Simulator(args.size, args.size, args.interval, args.stones)
-    sim.connect(args.host, args.port, args.cert, args.user, args.passwd)
+    sim.connect(args.host, args.port, args.cert, args.insecure, args.user, args.passwd)
     time.sleep(2)
     signal.signal(signal.SIGINT, signal_handler)
     print("Starting simulation...")
