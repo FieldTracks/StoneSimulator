@@ -52,14 +52,14 @@ class Simulator:
         self.interval = interval
         self.stone_num = stone_num
 
-    def connect(self, host, port, cert, insecure, user, passwd):
+    def connect(self, host, port, cert, insecure, user, passwd, tls):
         self.stones = list()
 
         for stone_id in range(self.stone_num):
             # Setup connection
             client = mqtt.Client('StoneSim{}'.format(stone_id))
             client.username_pw_set(user, passwd)
-            if cert is not None:
+            if tls != 0 and cert is not None:
                 client.tls_set(cert, tls_version=ssl.PROTOCOL_TLSv1_2)
                 if insecure:
                     client.tls_insecure_set(True)
@@ -175,12 +175,13 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--size', help='size of simulated area: <size> x <size> m^2', type=int, default=200)
     parser.add_argument('-i', '--interval', help='interval in which each stone sends data', type=int, default=8)
     parser.add_argument('-n', '--stones', help='number of stones to simulate', type=int, default=20)
+    parser.add_argument('-t', '--tls', help='Use TLS', type=int, default=1)
     args = parser.parse_args()
 
     # Setup simulation
     print("Setting up simulation...")
     sim = Simulator(args.size, args.size, args.interval, args.stones)
-    sim.connect(args.host, args.port, args.cert, args.insecure, args.user, args.passwd)
+    sim.connect(args.host, args.port, args.cert, args.insecure, args.user, args.passwd, args.tls)
     time.sleep(2)
     signal.signal(signal.SIGINT, signal_handler)
     print("Starting simulation...")
